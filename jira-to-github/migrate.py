@@ -51,6 +51,13 @@ def reformat_text(text):
 
     return text
 
+def decorate_user(user, text):
+    """
+    Adds a little preamble to a text body preserving who was its author.
+    """
+
+    return f"_{user.displayName} says:_ \n\n {text}`"
+
 def create_issue(repository_id, data, comments):
     """
     Create a issue in the GitHub repository.
@@ -107,7 +114,7 @@ def generate_issue_data(issue):
 
     data = {
         'title': f"[{issue.key}] {issue.fields.summary}",
-        'body': f"{reformat_text(issue.fields.description)}",
+        'body': decorate_user(issue.fields.creator, f"{reformat_text(issue.fields.description)}"),
         'closed': issue.fields.status.name in CLOSED_STATUSES,
         'labels': [issue.fields.issuetype.name.lower()]
     }
@@ -118,7 +125,7 @@ def generate_issue_data(issue):
     comments = []
     for comment in issue.fields.comment.comments:
         comments.append({
-            'body': reformat_text(comment.body),
+            'body': decorate_user(comment.author, reformat_text(comment.body)),
         })
 
     return data, comments
