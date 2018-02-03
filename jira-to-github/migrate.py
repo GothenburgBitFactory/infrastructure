@@ -20,7 +20,8 @@ from config import (
     GITHUB_PASSWORD
 )
 
-GITHUB_URL = 'https://api.github.com/repos/{org}/{repo}/issues'
+GITHUB_URL_NEW_ISSUE = 'https://api.github.com/repos/{org}/{repo}/issues'
+GITHUB_URL_NEW_COMMENT = 'https://api.github.com/repos/{org}/{repo}/issues/{issue}/comments'
 
 JIRA_YEAR_START = 2008
 JIRA_YEAR_END = 2018
@@ -50,7 +51,7 @@ def create_issue(repository_id, data, comments):
     session.auth = (GITHUB_USERNAME, GITHUB_PASSWORD)
 
     response = session.post(
-        GITHUB_URL.format(org=org, repo=repo),
+        GITHUB_URL_NEW_ISSUE.format(org=org, repo=repo),
         json.dumps(data)
     )
 
@@ -59,6 +60,20 @@ def create_issue(repository_id, data, comments):
     else:
         print(f'  Could not create: {data["title"]}')
         print(f'  Response: {response.content}')
+        return
+
+    new_issue_id = json.loads(response.content)['number']
+    for i, comment in enumerate(comments):
+        print(GITHUB_URL_NEW_COMMENT.format(org=org, repo=repo, issue=new_issue_id))
+        response = session.post(
+            GITHUB_URL_NEW_COMMENT.format(org=org, repo=repo, issue=new_issue_id),
+            json.dumps(comment)
+        )
+        if response.status_code == 201:
+            print(f'    Successfully created comment {i}')
+        else:
+            print(f'    Could not create comment {i}')
+            print(f'    Response: {response.content}')
 
 def generate_issue_data(issue):
     """
