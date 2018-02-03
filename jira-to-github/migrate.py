@@ -22,6 +22,15 @@ from config import (
 
 GITHUB_URL = 'https://api.github.com/repos/{org}/{repo}/issues'
 
+JIRA_YEAR_START = 2008
+JIRA_YEAR_END = 2018
+JIRA_FILTER_TEMP = (
+    'project={project} AND '
+    'createdDate < {end}-01-01 AND '
+    'createdDate >= {start}-01-01'
+)
+
+
 jira = JIRA(JIRA_URL, basic_auth=[JIRA_USERNAME, JIRA_PASSWORD])
 
 
@@ -48,10 +57,13 @@ def create_issue(repository_id, issue_data, comments):
         print ('Could not create Issue {0:s}'.format(issue['title']))
         print ('Response:', response.content)
 
-test_issue = {
-    'title': 'Imported issue',
-    'body': 'This is body of the issue',
-    'labels': ['bug']
-}
+# Get issue list for all the issues that match given project
+issue_list = []
+for year in range(JIRA_YEAR_START, JIRA_YEAR_END + 1):
+    jira_filter = JIRA_FILTER_TEMP.format(project='TW', start=year, end=year+1)
+    issue_list += jira.search_issues(jira_filter, maxResults=5000)
+
+print(len(issue_list))
+print(issue_list)
 
 create_issue('tbabej/testimport', test_issue, [])
