@@ -21,6 +21,7 @@ from config import (
 )
 
 GITHUB_URL_NEW_ISSUE = 'https://api.github.com/repos/{org}/{repo}/issues'
+GITHUB_URL_NEW_MILESTONE = 'https://api.github.com/repos/{org}/{repo}/milestones'
 GITHUB_URL_EDIT_ISSUE = 'https://api.github.com/repos/{org}/{repo}/issues/{issue}'
 GITHUB_URL_NEW_COMMENT = 'https://api.github.com/repos/{org}/{repo}/issues/{issue}/comments'
 
@@ -107,7 +108,7 @@ def create_issue(repository_id, data, comments):
             print(f'    Could not create comment {i}')
             print(f'    Response: {response.content}')
 
-def generate_issue_data(issue):
+def generate_issue_data(issue, milestone_map):
     """
     Generates a issue data dict for given identifier.
     """
@@ -116,7 +117,8 @@ def generate_issue_data(issue):
         'title': f"[{issue.key}] {issue.fields.summary}",
         'body': decorate_user(issue.fields.creator, f"{reformat_text(issue.fields.description)}"),
         'closed': issue.fields.status.name in CLOSED_STATUSES,
-        'labels': [issue.fields.issuetype.name.lower()]
+        'labels': [issue.fields.issuetype.name.lower()],
+        'milestone': milestone_map[issue.fields.fixVersions[0].name if issue.fields.fixVersions else 'Backlog']
     }
 
     if issue.fields.resolution:
@@ -129,6 +131,31 @@ def generate_issue_data(issue):
         })
 
     return data, comments
+
+def generate_milestone_map(repository_id, issues):
+    """
+    Creates all the milestones.
+    """
+
+    org, repo = repository_id.split('/')
+
+    session = requests.Session()
+    session.auth = (GITHUB_USERNAME, GITHUB_PASSWORD)
+
+    milestone_map ={}
+    milestones = list(sorted(set([
+        issue.fields.fixVersions[0].name if issue.fields.fixVersions else 'Backlog'
+        for issue in issues
+    ])))
+
+    for milestone in milestones:
+        response = session.post(
+            GITHUB_URL_NEW_MILESTONE.format(org=org, repo=repo),
+            json.dumps({'title': milestone})
+        )
+        milestone_map[milestone] = json.loads(response.content)['number']
+
+    return milestone_map
 
 jira = JIRA(JIRA_URL, basic_auth=[JIRA_USERNAME, JIRA_PASSWORD])
 
@@ -147,4 +174,12 @@ sorted_issue_list = list(sorted(
     key=lambda i: int(i.key.split('-')[1])
 ))
 
-print(f"The script will process {len(sorted_issue_list} matching issues now.")
+print(f"Fetching milestones...")
+milestone_map = generate_milestone_map('tbabej/testimport5', sorted_issue_list)
+
+print(f"The script will process {len(sorted_issue_list)} matching issues now.")
+
+issue = jira.issue(sorted_issue_list[0].key)
+for issue in (jira.issue('TW-1790'), jira.issue('TW-1600'), jira.issue('TW-1650')):
+    data, comments = generate_issue_data(issue, milestone_map)
+    create_issue('tbabej/testimport5', data, comments)
