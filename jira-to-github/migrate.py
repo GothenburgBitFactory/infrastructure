@@ -83,8 +83,6 @@ def generate_issue_data(issue):
     data = {
         'title': f"[{issue.key}] {issue.fields.summary}",
         'body': f"{issue.fields.description}",
-        'created_at': convert_timestamp(issue.fields.created),
-        'updated_at': convert_timestamp(issue.fields.updated),
         'closed': issue.fields.status.name in CLOSED_STATUSES
     }
 
@@ -92,7 +90,6 @@ def generate_issue_data(issue):
     for comment in issue.fields.comment.comments:
         comments.append({
             'body': comment.body,
-            'created_at': convert_timestamp(comment.created),
         })
 
     return data, comments
