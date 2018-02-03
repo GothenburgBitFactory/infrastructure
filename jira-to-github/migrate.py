@@ -83,8 +83,12 @@ def generate_issue_data(issue):
     data = {
         'title': f"[{issue.key}] {issue.fields.summary}",
         'body': f"{issue.fields.description}",
-        'closed': issue.fields.status.name in CLOSED_STATUSES
+        'closed': issue.fields.status.name in CLOSED_STATUSES,
+        'labels': [issue.fields.issuetype.name.lower()]
     }
+
+    if issue.fields.resolution:
+        data['labels'].append(issue.fields.resolution.name.lower())
 
     comments = []
     for comment in issue.fields.comment.comments:
