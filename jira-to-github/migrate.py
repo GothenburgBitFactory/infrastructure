@@ -21,6 +21,7 @@ from config import (
 )
 
 GITHUB_URL_NEW_ISSUE = 'https://api.github.com/repos/{org}/{repo}/issues'
+GITHUB_URL_EDIT_ISSUE = 'https://api.github.com/repos/{org}/{repo}/issues/{issue}'
 GITHUB_URL_NEW_COMMENT = 'https://api.github.com/repos/{org}/{repo}/issues/{issue}/comments'
 
 JIRA_YEAR_START = 2008
@@ -31,7 +32,7 @@ JIRA_FILTER_TEMP = (
     'createdDate >= {start}-01-01'
 )
 
-CLOSED_STATUSES = ('Resolved', 'Won\'t fix', 'Fixed')
+CLOSED_STATUSES = ('Resolved', 'Closed')
 
 def convert_timestamp(timestamp):
     """
@@ -50,21 +51,35 @@ def create_issue(repository_id, data, comments):
     session = requests.Session()
     session.auth = (GITHUB_USERNAME, GITHUB_PASSWORD)
 
+    # Create the issue
     response = session.post(
         GITHUB_URL_NEW_ISSUE.format(org=org, repo=repo),
         json.dumps(data)
     )
 
-    if response.status_code == 201:
-        print(f'  Successfully created: {data["title"]}')
-    else:
+    if response.status_code not in (200, 201):
         print(f'  Could not create: {data["title"]}')
         print(f'  Response: {response.content}')
         return
 
+    # Get the ID of the newly created issue
     new_issue_id = json.loads(response.content)['number']
+
+    # Set the status
+    response = session.patch(
+        GITHUB_URL_EDIT_ISSUE.format(org=org, repo=repo, issue=new_issue_id),
+        json.dumps({'state': 'closed' if data['closed'] else 'open'})
+    )
+
+    if response.status_code not in (200, 201):
+        print(f'  Could not edit status: {data["title"]}')
+        print(f'  Response: {response.content}')
+        return
+
+    print(f'  Successfully created: {data["title"]}')
+
+    # Add the comments
     for i, comment in enumerate(comments):
-        print(GITHUB_URL_NEW_COMMENT.format(org=org, repo=repo, issue=new_issue_id))
         response = session.post(
             GITHUB_URL_NEW_COMMENT.format(org=org, repo=repo, issue=new_issue_id),
             json.dumps(comment)
