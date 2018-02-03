@@ -30,6 +30,12 @@ JIRA_FILTER_TEMP = (
     'createdDate >= {start}-01-01'
 )
 
+def convert_timestamp(timestamp):
+    """
+    Converts timestamp from JIRA to GitHub preferred format.
+    """
+
+    return timestamp.split('.')[0] + 'Z'
 
 def create_issue(repository_id, data):
     """
@@ -66,7 +72,7 @@ def generate_issue_data(issue):
     for comment in issue.fields.comment.comments:
         comments.append({
             'body': comment.body,
-            'created_at': comment.created.split('.')[0] + 'Z',
+            'created_at': convert_timestamp(comment.created),
         })
 
     issue_dict = {
