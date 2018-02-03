@@ -34,13 +34,6 @@ JIRA_FILTER_TEMP = (
 
 CLOSED_STATUSES = ('Resolved', 'Closed')
 
-def convert_timestamp(timestamp):
-    """
-    Converts timestamp from JIRA to GitHub preferred format.
-    """
-
-    return timestamp.split('.')[0] + 'Z'
-
 def create_issue(repository_id, data, comments):
     """
     Create a issue in the GitHub repository.
