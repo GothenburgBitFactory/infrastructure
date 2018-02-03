@@ -39,7 +39,7 @@ def convert_timestamp(timestamp):
 
     return timestamp.split('.')[0] + 'Z'
 
-def create_issue(repository_id, data):
+def create_issue(repository_id, data, comments):
     """
     Create a issue in the GitHub repository.
     """
@@ -55,9 +55,9 @@ def create_issue(repository_id, data):
     )
 
     if response.status_code == 201:
-        print(f'  Successfully created: {data["issue"]["title"]}')
+        print(f'  Successfully created: {data["title"]}')
     else:
-        print(f'  Could not create: {data["issue"]["title"]}')
+        print(f'  Could not create: {data["title"]}')
         print(f'  Response: {response.content}')
 
 def generate_issue_data(issue):
@@ -80,12 +80,7 @@ def generate_issue_data(issue):
             'created_at': convert_timestamp(comment.created),
         })
 
-    issue_dict = {
-        "issue": data,
-        "comments": comments
-    }
-
-    return issue_dict
+    return data, comments
 
 jira = JIRA(JIRA_URL, basic_auth=[JIRA_USERNAME, JIRA_PASSWORD])
 
