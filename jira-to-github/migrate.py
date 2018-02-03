@@ -31,9 +31,6 @@ JIRA_FILTER_TEMP = (
 )
 
 
-jira = JIRA(JIRA_URL, basic_auth=[JIRA_USERNAME, JIRA_PASSWORD])
-
-
 def create_issue(repository_id, issue_data, comments):
     org, repo = repository_id.split('/')
 
@@ -56,6 +53,11 @@ def create_issue(repository_id, issue_data, comments):
     else:
         print ('Could not create Issue {0:s}'.format(issue['title']))
         print ('Response:', response.content)
+
+jira = JIRA(JIRA_URL, basic_auth=[JIRA_USERNAME, JIRA_PASSWORD])
+
+print("Connection to JIRA successfully established.")
+print("Fetching list of matching issues...")
 
 # Get issue list for all the issues that match given project
 issue_list = []
