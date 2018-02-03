@@ -31,7 +31,7 @@ JIRA_FILTER_TEMP = (
 )
 
 
-def create_issue(repository_id, issue_data, comments):
+def create_issue(repository_id, data):
     """
     Create a issue in the GitHub repository.
     """
@@ -41,22 +41,40 @@ def create_issue(repository_id, issue_data, comments):
     session = requests.Session()
     session.auth = (GITHUB_USERNAME, GITHUB_PASSWORD)
 
-    issue = {
-        'title': issue_data['title'],
-        'body': issue_data['body'],
-        'labels': issue_data.get('labels') or []
-    }
-
     response = session.post(
         GITHUB_URL.format(org=org, repo=repo),
-        json.dumps(issue)
+        json.dumps(data)
     )
 
     if response.status_code == 201:
-        print(f'  Successfully created: {issue["title"]}')
+        print(f'  Successfully created: {data["issue"]["title"]}')
     else:
-        print(f'  Could not create: {issue["title"]}')
+        print(f'  Could not create: {data["issue"]["title"]}')
         print(f'  Response: {response.content}')
+
+def generate_issue_data(issue):
+    """
+    Generates a issue data dict for given identifier.
+    """
+
+    data = {
+        'title': f"[{issue.key}] {issue.fields.summary}",
+        'body': f"{issue.fields.description}",
+    }
+
+    comments = []
+    for comment in issue.fields.comment.comments:
+        comments.append({
+            'body': comment.body,
+            'created_at': comment.created.split('.')[0] + 'Z',
+        })
+
+    issue_dict = {
+        "issue": data,
+        "comments": comments
+    }
+
+    return issue_dict
 
 jira = JIRA(JIRA_URL, basic_auth=[JIRA_USERNAME, JIRA_PASSWORD])
 
