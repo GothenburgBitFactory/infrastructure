@@ -34,6 +34,23 @@ JIRA_FILTER_TEMP = (
 
 CLOSED_STATUSES = ('Resolved', 'Closed')
 
+def reformat_text(text):
+    """
+    Change the text formatting from Jira to GitHub flavoured Markdown.
+    """
+
+    replacements = (
+        ('{noformat}', '```'),
+        ('{quote}', '```'),
+        ('{{', '`'),
+        ('}}', '`')
+    )
+
+    for old, new in replacements:
+        text = text.replace(old, new)
+
+    return text
+
 def create_issue(repository_id, data, comments):
     """
     Create a issue in the GitHub repository.
@@ -90,7 +107,7 @@ def generate_issue_data(issue):
 
     data = {
         'title': f"[{issue.key}] {issue.fields.summary}",
-        'body': f"{issue.fields.description}",
+        'body': f"{reformat_text(issue.fields.description)}",
         'closed': issue.fields.status.name in CLOSED_STATUSES,
         'labels': [issue.fields.issuetype.name.lower()]
     }
@@ -101,7 +118,7 @@ def generate_issue_data(issue):
     comments = []
     for comment in issue.fields.comment.comments:
         comments.append({
-            'body': comment.body,
+            'body': reformat_text(comment.body),
         })
 
     return data, comments
