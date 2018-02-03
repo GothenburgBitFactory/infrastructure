@@ -30,6 +30,8 @@ JIRA_FILTER_TEMP = (
     'createdDate >= {start}-01-01'
 )
 
+CLOSED_STATUSES = ('Resolved', 'Won\'t fix', 'Fixed')
+
 def convert_timestamp(timestamp):
     """
     Converts timestamp from JIRA to GitHub preferred format.
@@ -66,6 +68,9 @@ def generate_issue_data(issue):
     data = {
         'title': f"[{issue.key}] {issue.fields.summary}",
         'body': f"{issue.fields.description}",
+        'created_at': convert_timestamp(issue.fields.created),
+        'updated_at': convert_timestamp(issue.fields.updated),
+        'closed': issue.fields.status.name in CLOSED_STATUSES
     }
 
     comments = []
