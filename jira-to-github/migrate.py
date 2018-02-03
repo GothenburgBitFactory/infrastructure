@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 """
 Usage: migrate.py <project> <repo>
 
@@ -188,4 +190,4 @@ def main(repo, project):
 
 if __name__ == '__main__':
     args = docopt.docopt(__doc__)
-    main(args['<repo>', '<project>'])
+    main(args['<repo>'], args['<project>'])
