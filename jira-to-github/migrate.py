@@ -1,9 +1,9 @@
 """
-Usage: migrate.py <filter> <github_repo>
+Usage: migrate.py <project> <repo>
 
 Options:
-    <filter>          The filter for issues to be migrated.
-    <github_repo>     The github repo name in the 'GothenburgBitFactory/infrastructure' format
+    <project>         The project whose issues are to be migrated.
+    <repo>            The github repo name in the 'GothenburgBitFactory/infrastructure' format
 """
 
 import docopt
@@ -157,29 +157,35 @@ def generate_milestone_map(repository_id, issues):
 
     return milestone_map
 
-jira = JIRA(JIRA_URL, basic_auth=[JIRA_USERNAME, JIRA_PASSWORD])
+def main(repo, project):
+    jira = JIRA(JIRA_URL, basic_auth=[JIRA_USERNAME, JIRA_PASSWORD])
 
-print("Connection to JIRA successfully established.")
-print("Fetching list of matching issues...")
+    print("Connection to JIRA successfully established.")
+    print("Fetching list of matching issues...")
 
-# Get issue list for all the issues that match given project
-issue_list = []
-for year in range(JIRA_YEAR_START, JIRA_YEAR_END + 1):
-    jira_filter = JIRA_FILTER_TEMP.format(project='TW', start=year, end=year+1)
-    issue_list += jira.search_issues(jira_filter, maxResults=5000)
+    # Get issue list for all the issues that match given project
+    issue_list = []
+    for year in range(JIRA_YEAR_START, JIRA_YEAR_END + 1):
+        jira_filter = JIRA_FILTER_TEMP.format(project=project, start=year, end=year+1)
+        issue_list += jira.search_issues(jira_filter, maxResults=5000)
 
-# Sort issue list
-sorted_issue_list = list(sorted(
-    issue_list,
-    key=lambda i: int(i.key.split('-')[1])
-))
+    # Sort issue list
+    sorted_issue_list = list(sorted(
+        issue_list,
+        key=lambda i: int(i.key.split('-')[1])
+    ))
 
-print(f"Fetching milestones...")
-milestone_map = generate_milestone_map('tbabej/testimport5', sorted_issue_list)
+    print(f"Fetching milestones...")
+    milestone_map = generate_milestone_map(repo, sorted_issue_list)
 
-print(f"The script will process {len(sorted_issue_list)} matching issues now.")
+    print(f"The script will process {len(sorted_issue_list)} matching issues now.")
 
-issue = jira.issue(sorted_issue_list[0].key)
-for issue in (jira.issue('TW-1790'), jira.issue('TW-1600'), jira.issue('TW-1650')):
-    data, comments = generate_issue_data(issue, milestone_map)
-    create_issue('tbabej/testimport5', data, comments)
+    issue = jira.issue(sorted_issue_list[0].key)
+    for issue_key in [i.key for i in sorted_issue_list]:
+        issue = jira.issue(issue_key)
+        data, comments = generate_issue_data(issue, milestone_map)
+        create_issue(repo, data, comments)
+
+if __name__ == '__main__':
+    args = docopt.docopt(__doc__)
+    main(args['<repo>', '<project>'])
