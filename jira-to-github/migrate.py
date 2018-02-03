@@ -32,6 +32,10 @@ JIRA_FILTER_TEMP = (
 
 
 def create_issue(repository_id, issue_data, comments):
+    """
+    Create a issue in the GitHub repository.
+    """
+
     org, repo = repository_id.split('/')
 
     session = requests.Session()
@@ -49,10 +53,10 @@ def create_issue(repository_id, issue_data, comments):
     )
 
     if response.status_code == 201:
-        print ('Successfully created Issue {0:s}'.format(issue['title']))
+        print(f'  Successfully created: {issue["title"]}')
     else:
-        print ('Could not create Issue {0:s}'.format(issue['title']))
-        print ('Response:', response.content)
+        print(f'  Could not create: {issue["title"]}')
+        print(f'  Response: {response.content}')
 
 jira = JIRA(JIRA_URL, basic_auth=[JIRA_USERNAME, JIRA_PASSWORD])
 
