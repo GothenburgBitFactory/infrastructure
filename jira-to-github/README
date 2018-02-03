@@ -1,0 +1,5 @@
+=== Jira migration script ===
+
+This script was used during Great Infrastructure Migration of TaskWarrior of 2018.
+
+The intention is not to be a maintained, generic tool, but it could be easily used for other migrations with moderate amount of tweaking.
