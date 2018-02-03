@@ -65,7 +65,10 @@ for year in range(JIRA_YEAR_START, JIRA_YEAR_END + 1):
     jira_filter = JIRA_FILTER_TEMP.format(project='TW', start=year, end=year+1)
     issue_list += jira.search_issues(jira_filter, maxResults=5000)
 
-print(len(issue_list))
-print(issue_list)
+# Sort issue list
+sorted_issue_list = list(sorted(
+    issue_list,
+    key=lambda i: int(i.key.split('-')[1])
+))
 
-create_issue('tbabej/testimport', test_issue, [])
+print(f"The script will process {len(sorted_issue_list} matching issues now.")
