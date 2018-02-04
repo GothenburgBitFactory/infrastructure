@@ -197,7 +197,9 @@ def generate_meta_comment(issue):
     """
 
     return {
-            'body': f"```\nCreated: {issue.fields.created}\nModified: {issue.fields.updated}"
+        'body': f"Migrated metadata:\n```\n" +
+                f"Created: {issue.fields.created}\n" +
+                f"Modified: {issue.fields.updated}```"
     }
 
 def main(repo, project):
