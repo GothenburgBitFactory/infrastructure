@@ -55,26 +55,6 @@ def reformat_text(text):
 
     return text
 
-def header_sleep(response):
-    """
-    Checks the response headers and sleeps if rate limit has been achieved.
-    """
-
-    # Find out if we're about to breach the limit
-    remaining = int(response.headers['X-RateLimit-Remaining'])
-    print(response.headers)
-    print(f"Remaining limit is {remaining}")
-
-    if remaining <= 2:
-        # Compute how long we have to wait until RateLimit is reset
-        now = int(datetime.datetime.now().timestamp())
-        reset_time = int(response.headers['X-RateLimit-Reset'])
-        sleep_duration = reset_time - now
-
-        # Sleep for the given interval
-        print(f"Rate limit reached, sleeping for {sleep_duration}")
-        time.sleep(sleep_duration)
-
 def decorate_user(user, text):
     """
     Adds a little preamble to a text body preserving who was its author.
@@ -101,9 +81,9 @@ def create_issue(repository_id, data, comments):
     if response.status_code not in (200, 201):
         print(f'  Could not create: {data["title"]}')
         print(f'  Response: {response.content}')
-        #return
+        return
 
-    header_sleep(response)
+    time.sleep(10)
 
     # Get the ID of the newly created issue
     new_issue_id = json.loads(response.content)['number']
@@ -120,7 +100,7 @@ def create_issue(repository_id, data, comments):
         #return
 
     print(f'  Successfully created: {data["title"]}')
-    header_sleep(response)
+    time.sleep(10)
 
     # Add the comments
     for i, comment in enumerate(comments):
@@ -135,7 +115,7 @@ def create_issue(repository_id, data, comments):
             print(f'    Response: {response.content}')
 
         # Generate comments slowly
-        header_sleep(response)
+        time.sleep(10)
 
 def generate_issue_data(issue, milestone_map):
     """
@@ -183,7 +163,7 @@ def generate_milestone_map(repository_id, issues):
             json.dumps({'title': milestone})
         )
         milestone_map[milestone] = json.loads(response.content)['number']
-        header_sleep(response)
+        time.sleep(10)
 
     return milestone_map
 
