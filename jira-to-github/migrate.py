@@ -8,11 +8,11 @@ Options:
     <repo>            The github repo name in the 'GothenburgBitFactory/infrastructure' format
 """
 
-import docopt
 import json
 import requests
 import time
 import os
+import docopt
 
 from jira import JIRA
 
@@ -185,6 +185,15 @@ def download_attachments(issue):
         with open(filename, 'wb') as f:
             f.write(attachment.get())
 
+def generate_meta_comment(issue):
+    """
+    Store some metadata in a meta comment.
+    """
+
+    return {
+            'body': f"```\nCreated: {issue.fields.created}\nModified: {issue.fields.updated}"
+    }
+
 def main(repo, project):
     jira = JIRA(JIRA_URL, basic_auth=[JIRA_USERNAME, JIRA_PASSWORD])
 
@@ -212,6 +221,7 @@ def main(repo, project):
     for issue_key in [i.key for i in sorted_issue_list]:
         issue = jira.issue(issue_key)
         data, comments = generate_issue_data(issue, milestone_map)
+        comments.insert(0, generate_meta_comment(issue))
         download_attachments(issue)
         create_issue(repo, data, comments)
         time.sleep(10)
