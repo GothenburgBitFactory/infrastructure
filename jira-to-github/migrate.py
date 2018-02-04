@@ -80,7 +80,7 @@ def decorate_user(user, text):
     Adds a little preamble to a text body preserving who was its author.
     """
 
-    return f"_{user.displayName} says:_ \n\n {text}`"
+    return f"_{user.displayName} says:_ \n\n {text}"
 
 def create_issue(repository_id, data, comments):
     """
