@@ -11,6 +11,7 @@ Options:
 import docopt
 import json
 import requests
+import time
 
 from jira import JIRA
 
@@ -54,6 +55,26 @@ def reformat_text(text):
 
     return text
 
+def header_sleep(response):
+    """
+    Checks the response headers and sleeps if rate limit has been achieved.
+    """
+
+    # Find out if we're about to breach the limit
+    remaining = int(response.headers['X-RateLimit-Remaining'])
+    print(response.headers)
+    print(f"Remaining limit is {remaining}")
+
+    if remaining <= 2:
+        # Compute how long we have to wait until RateLimit is reset
+        now = int(datetime.datetime.now().timestamp())
+        reset_time = int(response.headers['X-RateLimit-Reset'])
+        sleep_duration = reset_time - now
+
+        # Sleep for the given interval
+        print(f"Rate limit reached, sleeping for {sleep_duration}")
+        time.sleep(sleep_duration)
+
 def decorate_user(user, text):
     """
     Adds a little preamble to a text body preserving who was its author.
@@ -80,7 +101,9 @@ def create_issue(repository_id, data, comments):
     if response.status_code not in (200, 201):
         print(f'  Could not create: {data["title"]}')
         print(f'  Response: {response.content}')
-        return
+        #return
+
+    header_sleep(response)
 
     # Get the ID of the newly created issue
     new_issue_id = json.loads(response.content)['number']
@@ -94,9 +117,10 @@ def create_issue(repository_id, data, comments):
     if response.status_code not in (200, 201):
         print(f'  Could not edit status: {data["title"]}')
         print(f'  Response: {response.content}')
-        return
+        #return
 
     print(f'  Successfully created: {data["title"]}')
+    header_sleep(response)
 
     # Add the comments
     for i, comment in enumerate(comments):
@@ -109,6 +133,9 @@ def create_issue(repository_id, data, comments):
         else:
             print(f'    Could not create comment {i}')
             print(f'    Response: {response.content}')
+
+        # Generate comments slowly
+        header_sleep(response)
 
 def generate_issue_data(issue, milestone_map):
     """
@@ -156,6 +183,7 @@ def generate_milestone_map(repository_id, issues):
             json.dumps({'title': milestone})
         )
         milestone_map[milestone] = json.loads(response.content)['number']
+        header_sleep(response)
 
     return milestone_map
 
@@ -187,6 +215,7 @@ def main(repo, project):
         issue = jira.issue(issue_key)
         data, comments = generate_issue_data(issue, milestone_map)
         create_issue(repo, data, comments)
+        time.sleep(10)
 
 if __name__ == '__main__':
     args = docopt.docopt(__doc__)
