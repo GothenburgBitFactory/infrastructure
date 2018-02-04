@@ -40,6 +40,11 @@ JIRA_FILTER_TEMP = (
 CLOSED_STATUSES = ('Resolved', 'Closed')
 REQUEST_SLEEP = 15
 
+TAG_MAP = {
+    'new feature': 'enhancement',
+    'improvement': 'enhancement'
+}
+
 def reformat_text(text):
     """
     Change the text formatting from Jira to GitHub flavoured Markdown.
@@ -128,7 +133,7 @@ def generate_issue_data(issue, milestone_map):
         'title': f"[{issue.key}] {issue.fields.summary}",
         'body': decorate_user(issue.fields.creator, f"{reformat_text(issue.fields.description)}"),
         'closed': issue.fields.status.name in CLOSED_STATUSES,
-        'labels': [issue.fields.issuetype.name.lower()],
+        'labels': [TAG_MAP.get(issue.fields.issuetype.name.lower(), issue.fields.issuetype.name.lower())],
         'milestone': milestone_map[issue.fields.fixVersions[0].name if issue.fields.fixVersions else 'Backlog']
     }
 
