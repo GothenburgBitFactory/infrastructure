@@ -12,6 +12,7 @@ import docopt
 import json
 import requests
 import time
+import os
 
 from jira import JIRA
 
@@ -167,6 +168,23 @@ def generate_milestone_map(repository_id, issues):
 
     return milestone_map
 
+def download_attachments(issue):
+    """
+    Downloads the attachments from JIRA and saves them locally in the 'files/'
+    folder.
+    """
+
+    if not issue.fields.attachment:
+        return
+
+    if not os.path.exists('files'):
+        os.mkdir('files')
+
+    for attachment in issue.fields.attachment:
+        filename = f"files/{issue.key}_{attachment.filename}"
+        with open(filename, 'wb') as f:
+            f.write(attachment.get())
+
 def main(repo, project):
     jira = JIRA(JIRA_URL, basic_auth=[JIRA_USERNAME, JIRA_PASSWORD])
 
@@ -194,6 +212,7 @@ def main(repo, project):
     for issue_key in [i.key for i in sorted_issue_list]:
         issue = jira.issue(issue_key)
         data, comments = generate_issue_data(issue, milestone_map)
+        download_attachments(issue)
         create_issue(repo, data, comments)
         time.sleep(10)
 
