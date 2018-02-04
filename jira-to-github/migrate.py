@@ -38,6 +38,7 @@ JIRA_FILTER_TEMP = (
 )
 
 CLOSED_STATUSES = ('Resolved', 'Closed')
+REQUEST_SLEEP = 15
 
 def reformat_text(text):
     """
@@ -84,7 +85,7 @@ def create_issue(repository_id, data, comments):
         print(f'  Response: {response.content}')
         return
 
-    time.sleep(10)
+    time.sleep(REQUEST_SLEEP)
 
     # Get the ID of the newly created issue
     new_issue_id = json.loads(response.content)['number']
@@ -101,7 +102,7 @@ def create_issue(repository_id, data, comments):
         #return
 
     print(f'  Successfully created: {data["title"]}')
-    time.sleep(10)
+    time.sleep(REQUEST_SLEEP)
 
     # Add the comments
     for i, comment in enumerate(comments):
@@ -116,7 +117,7 @@ def create_issue(repository_id, data, comments):
             print(f'    Response: {response.content}')
 
         # Generate comments slowly
-        time.sleep(10)
+        time.sleep(REQUEST_SLEEP)
 
 def generate_issue_data(issue, milestone_map):
     """
@@ -164,7 +165,7 @@ def generate_milestone_map(repository_id, issues):
             json.dumps({'title': milestone})
         )
         milestone_map[milestone] = json.loads(response.content)['number']
-        time.sleep(10)
+        time.sleep(REQUEST_SLEEP)
 
     return milestone_map
 
@@ -224,7 +225,7 @@ def main(repo, project):
         comments.insert(0, generate_meta_comment(issue))
         download_attachments(issue)
         create_issue(repo, data, comments)
-        time.sleep(10)
+        time.sleep(REQUEST_SLEEP)
 
 if __name__ == '__main__':
     args = docopt.docopt(__doc__)
