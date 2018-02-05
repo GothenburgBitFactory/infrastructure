@@ -43,7 +43,8 @@ REQUEST_SLEEP = 15
 
 TAG_MAP = {
     'new feature': 'enhancement',
-    'improvement': 'enhancement'
+    'improvement': 'enhancement',
+    'wontfix': 'won\'t fix'
 }
 
 def reformat_text(text):
