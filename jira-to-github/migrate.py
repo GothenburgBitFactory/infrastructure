@@ -52,6 +52,9 @@ def reformat_text(text):
     Change the text formatting from Jira to GitHub flavoured Markdown.
     """
 
+    if not text:
+        return ''
+
     replacements = (
         ('{noformat}', '```'),
         ('{quote}', '```'),
