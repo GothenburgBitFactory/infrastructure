@@ -214,7 +214,7 @@ def generate_meta_comment(issue):
     return {
         'body': f"Migrated metadata:\n```\n" +
                 f"Created: {convert_timestamp(issue.fields.created)}\n" +
-                f"Modified: {convert_timestamp(issue.fields.updated)}```"
+                f"Modified: {convert_timestamp(issue.fields.updated)}\n```"
     }
 
 def main(repo, project):
