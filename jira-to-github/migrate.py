@@ -47,6 +47,13 @@ TAG_MAP = {
     'wontfix': 'won\'t fix'
 }
 
+def convert_timestamp(timestamp):
+    """
+    Converts timestamp from JIRA to GitHub preferred format.
+    """
+
+    return timestamp.split('.')[0] + 'Z'
+
 def reformat_text(text):
     """
     Change the text formatting from Jira to GitHub flavoured Markdown.
@@ -70,12 +77,12 @@ def reformat_text(text):
 
     return text
 
-def decorate_user(user, text):
+def decorate_user(user, timefield, text):
     """
     Adds a little preamble to a text body preserving who was its author.
     """
 
-    return f"_{user.displayName} says:_ \n\n {text}"
+    return f"_{user.displayName} on {convert_timestamp(timefield)} says:_ \n\n {text}"
 
 def create_issue(repository_id, data, comments):
     """
@@ -139,7 +146,7 @@ def generate_issue_data(issue, milestone_map):
 
     data = {
         'title': f"[{issue.key}] {issue.fields.summary}",
-        'body': decorate_user(issue.fields.creator, f"{reformat_text(issue.fields.description)}"),
+        'body': decorate_user(issue.fields.creator, issue.fields.created, f"{reformat_text(issue.fields.description)}"),
         'closed': issue.fields.status.name in CLOSED_STATUSES,
         'labels': [TAG_MAP.get(issue.fields.issuetype.name.lower(), issue.fields.issuetype.name.lower())],
         'milestone': milestone_map[issue.fields.fixVersions[0].name if issue.fields.fixVersions else 'Backlog']
@@ -151,7 +158,7 @@ def generate_issue_data(issue, milestone_map):
     comments = []
     for comment in issue.fields.comment.comments:
         comments.append({
-            'body': decorate_user(comment.author, reformat_text(comment.body)),
+            'body': decorate_user(comment.author, comment.created, reformat_text(comment.body)),
         })
 
     return data, comments
@@ -206,8 +213,8 @@ def generate_meta_comment(issue):
 
     return {
         'body': f"Migrated metadata:\n```\n" +
-                f"Created: {issue.fields.created}\n" +
-                f"Modified: {issue.fields.updated}```"
+                f"Created: {convert_timestamp(issue.fields.created)}\n" +
+                f"Modified: {convert_timestamp(issue.fields.updated)}```"
     }
 
 def main(repo, project):
