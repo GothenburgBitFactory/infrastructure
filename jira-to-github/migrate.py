@@ -9,6 +9,7 @@ Options:
 """
 
 import json
+import re
 import requests
 import time
 import os
@@ -59,6 +60,9 @@ def reformat_text(text):
 
     for old, new in replacements:
         text = text.replace(old, new)
+
+    # Get rid of @ character followed by a word:
+    text = re.sub(r'@[A-Za-z]\w', lambda m: f'(at){m.group()[1:]}', text)
 
     return text
 
