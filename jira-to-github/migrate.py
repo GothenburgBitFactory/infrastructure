@@ -74,8 +74,15 @@ def reformat_text(text):
 
     # Get rid of @ character followed by a word:
     text = re.sub(r'@[A-Za-z]\w', lambda m: f'(at){m.group()[1:]}', text)
-    text = re.sub(r'^\s+#', lambda m: f'1. ', text)
-    text = re.sub(r'^\s+-', lambda m: f'* ', text)
+    text = re.sub(r'^\s*\#', lambda m: f'1. ', text, flags=re.MULTILINE)
+    text = re.sub(r'^\s*-', lambda m: f'* ', text, flags=re.MULTILINE)
+    text = re.sub(r'^\s*h1\. ', lambda m: f'# ', text, flags=re.MULTILINE)
+    text = re.sub(r'^\s*h2\. ', lambda m: f'## ', text, flags=re.MULTILINE)
+    text = re.sub(r'^\s*h3\. ', lambda m: f'### ', text, flags=re.MULTILINE)
+    text = re.sub(r'^\s*h4\. ', lambda m: f'#### ', text, flags=re.MULTILINE)
+    text = re.sub(r'^\s*h5\. ', lambda m: f'##### ', text, flags=re.MULTILINE)
+    text = re.sub(r'^\s*h6\. ', lambda m: f'###### ', text, flags=re.MULTILINE)
+    text = re.sub(r'!(?P<url>(http[^ \n]+))!', lambda m: f"![Imported image]({m.group('url')})", text)
 
     return text
 
