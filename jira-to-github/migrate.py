@@ -44,7 +44,7 @@ REQUEST_SLEEP = 15
 TAG_MAP = {
     'new feature': 'enhancement',
     'improvement': 'enhancement',
-    'wontfix': 'won\'t fix'
+    'wont\'fix': 'wontfix'
 }
 
 def convert_timestamp(timestamp):
@@ -74,6 +74,8 @@ def reformat_text(text):
 
     # Get rid of @ character followed by a word:
     text = re.sub(r'@[A-Za-z]\w', lambda m: f'(at){m.group()[1:]}', text)
+    text = re.sub(r'^\s+#', lambda m: f'1. ', text)
+    text = re.sub(r'^\s+-', lambda m: f'* ', text)
 
     return text
 
